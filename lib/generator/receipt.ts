@@ -1,27 +1,10 @@
 import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas"
-import { join } from "node:path"
 import { randomReceipt } from "./randomize"
 import { signedQrDataUrl } from "../signature/sign"
 
-// Register Roboto fonts - coba multiple paths untuk compatibility (lokal + Vercel)
-const tryRegisterFont = (filename: string, family: string) => {
-  const paths = [
-    join(process.cwd(), "fonts", filename),
-    join(__dirname, "../../fonts", filename),
-    join("/var/task", "fonts", filename), // Vercel deployment path
-  ]
-  for (const p of paths) {
-    try {
-      GlobalFonts.registerFromPath(p, family)
-      break
-    } catch {
-      // Font sudah terdaftar atau path tidak ada, lanjut ke path berikutnya
-    }
-  }
-}
-
-tryRegisterFont("Roboto-Regular.ttf", "Roboto")
-tryRegisterFont("Roboto-Bold.ttf", "Roboto-Bold")
+// Gunakan font system Linux yang tersedia di Vercel
+// Vercel menggunakan Ubuntu/Debian, font DejaVu biasanya tersedia
+// Atau gunakan font built-in canvas
 
 const W = 640
 const PAD = 20
@@ -61,7 +44,7 @@ export async function renderReceiptImage(format: "png" | "jpeg" = "png") {
   y += 20
 
   // ── STORE BADGE ──
-  ctx.font = "bold 10px Roboto"
+  ctx.font = "bold 10px sans-serif"
   ctx.fillStyle = "#1a56db"
   const bw = ctx.measureText(data.storeLabel).width + 16
   ctx.strokeStyle = "#1a56db"; ctx.lineWidth = 1.5
@@ -70,7 +53,7 @@ export async function renderReceiptImage(format: "png" | "jpeg" = "png") {
   y += 18
 
   // ── STORE NAME ──
-  ctx.font = "bold 22px Roboto"
+  ctx.font = "bold 22px sans-serif"
   ctx.fillStyle = "#111"
   ctx.textAlign = "left"
   for (const line of wrap(ctx, `${data.storeName} ${data.storeNumber}`, W - PAD * 2)) {
@@ -79,7 +62,7 @@ export async function renderReceiptImage(format: "png" | "jpeg" = "png") {
   y += 4
 
   // ── ADDRESS ──
-  ctx.font = "12px Roboto"
+  ctx.font = "12px sans-serif"
   ctx.fillStyle = "#555"
   for (const line of wrap(ctx, data.address, W - PAD * 2)) { ctx.fillText(line, PAD, y); y += 17 }
   ctx.fillText(`Kecamatan ${data.kecamatan}, Kabupaten ${data.kabupaten}`, PAD, y); y += 17
@@ -103,9 +86,9 @@ export async function renderReceiptImage(format: "png" | "jpeg" = "png") {
   y = boxY + 20
   for (let i = 0; i < infoRows.length; i++) {
     const [label, value] = infoRows[i]
-    ctx.font = "12px Roboto"; ctx.fillStyle = "#666"; ctx.textAlign = "left"
+    ctx.font = "12px sans-serif"; ctx.fillStyle = "#666"; ctx.textAlign = "left"
     ctx.fillText(label, PAD + 12, y)
-    ctx.font = "bold 12px Roboto"; ctx.fillStyle = "#111"; ctx.textAlign = "right"
+    ctx.font = "bold 12px sans-serif"; ctx.fillStyle = "#111"; ctx.textAlign = "right"
     ctx.fillText(value, W - PAD - 12, y)
     if (i < infoRows.length - 1) {
       ctx.strokeStyle = "#eee"; ctx.beginPath()
@@ -117,14 +100,14 @@ export async function renderReceiptImage(format: "png" | "jpeg" = "png") {
 
   // ── ITEMS ──
   for (const item of data.items) {
-    ctx.font = "bold 13px Roboto"; ctx.fillStyle = "#111"; ctx.textAlign = "left"
+    ctx.font = "bold 13px sans-serif"; ctx.fillStyle = "#111"; ctx.textAlign = "left"
     for (const line of wrap(ctx, item.name, W - PAD * 2)) { ctx.fillText(line, PAD, y); y += 18 }
-    ctx.font = "11px Roboto"; ctx.fillStyle = "#888"; ctx.textAlign = "left"
+    ctx.font = "11px sans-serif"; ctx.fillStyle = "#888"; ctx.textAlign = "left"
     ctx.fillText(item.cat, PAD, y)
     ctx.fillStyle = "#555"; ctx.textAlign = "right"
     ctx.fillText(`${item.qty} x ${rp(item.price)}`, W - PAD, y)
     y += 18
-    ctx.font = "bold 12px Roboto";
+    ctx.font = "bold 12px sans-serif";
     ctx.fillStyle = "#111"; ctx.textAlign = "right"
     ctx.fillText(rp(item.line), W - PAD, y)
     y += 18
@@ -147,9 +130,9 @@ export async function renderReceiptImage(format: "png" | "jpeg" = "png") {
   ctx.strokeRect(PAD, tboxY, W - PAD * 2, totRows.length * rowH + 12)
   y = tboxY + 20
   for (const [label, value, color] of totRows) {
-    ctx.font = "12px Roboto"; ctx.fillStyle = "#555"; ctx.textAlign = "left"
+    ctx.font = "12px sans-serif"; ctx.fillStyle = "#555"; ctx.textAlign = "left"
     ctx.fillText(label, PAD + 12, y)
-    ctx.font = "12px Roboto"; ctx.fillStyle = color; ctx.textAlign = "right"
+    ctx.font = "12px sans-serif"; ctx.fillStyle = color; ctx.textAlign = "right"
     ctx.fillText(value, W - PAD - 12, y); y += rowH
   }
   y += 4
@@ -157,18 +140,18 @@ export async function renderReceiptImage(format: "png" | "jpeg" = "png") {
   // ── TOTAL ROW ──
   ctx.fillStyle = "#1e3a5f"
   ctx.fillRect(PAD, y, W - PAD * 2, 44)
-  ctx.font = "bold 15px Roboto"; ctx.fillStyle = "#fff"; ctx.textAlign = "left"
+  ctx.font = "bold 15px sans-serif"; ctx.fillStyle = "#fff"; ctx.textAlign = "left"
   ctx.fillText("TOTAL BELANJA", PAD + 14, y + 28)
   ctx.fillStyle = "#e3a008"; ctx.textAlign = "right"
   ctx.fillText(rp(data.total), W - PAD - 14, y + 28)
   y += 56
 
   // ── PAYMENT INFO ──
-  ctx.font = "12px Roboto"; ctx.fillStyle = "#555"; ctx.textAlign = "center"
+  ctx.font = "12px sans-serif"; ctx.fillStyle = "#555"; ctx.textAlign = "center"
   ctx.fillText(`Metode: ${data.payment}`, W / 2, y); y += 20
   ctx.fillText(`Status: ${data.payStatus}`, W / 2, y); y += 20
   ctx.fillText("Kode Pengiriman Internal Toko:", W / 2, y); y += 20
-  ctx.font = "bold 12px Roboto"; ctx.fillStyle = "#111"
+  ctx.font = "bold 12px sans-serif"; ctx.fillStyle = "#111"
   ctx.fillText(data.shipCode, W / 2, y); y += 30
 
   // ── QR CODE ──
@@ -181,7 +164,7 @@ export async function renderReceiptImage(format: "png" | "jpeg" = "png") {
   y += 126
 
   // ── FOOTER ──
-  ctx.font = "10px Roboto"; ctx.fillStyle = "#aaa"; ctx.textAlign = "center"
+  ctx.font = "10px sans-serif"; ctx.fillStyle = "#aaa"; ctx.textAlign = "center"
   ctx.fillText(data.kodeStruk, W / 2, y); y += 16
   ctx.fillText("Dokumen ini dibuat otomatis untuk administrasi internal", W / 2, y); y += 16
   ctx.fillText("Barang yang sudah dibeli dicek di kasir sebelum meninggalkan gerai.", W / 2, y)
@@ -193,7 +176,7 @@ export async function renderReceiptImage(format: "png" | "jpeg" = "png") {
 
   // ── WATERMARK (sangat transparan) ──
   ctx.save(); ctx.globalAlpha = 0.05; ctx.fillStyle = "#d00"
-  ctx.font = "bold 36px Roboto"; ctx.textAlign = "center"
+  ctx.font = "bold 36px sans-serif"; ctx.textAlign = "center"
   ctx.translate(W / 2, y / 2); ctx.rotate(-Math.PI / 6)
   for (let i = -3; i <= 3; i++) ctx.fillText("SYNTHETIC • TEST ONLY", 0, i * 100)
   ctx.restore()
