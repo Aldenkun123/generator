@@ -28,5 +28,12 @@ export function signPayload(payload: ReceiptPayload) {
 }
 
 export async function signedQrDataUrl(payload: ReceiptPayload) {
-  return QRCode.toDataURL(JSON.stringify(signPayload(payload)), { errorCorrectionLevel: "M" })
+  try {
+    const signed = signPayload(payload)
+    return await QRCode.toDataURL(JSON.stringify(signed), { errorCorrectionLevel: "M" })
+  } catch (err) {
+    // Fallback: QR code tanpa signature jika env vars tidak ada
+    console.warn("[sign.ts] No signing keys, generating unsigned QR")
+    return await QRCode.toDataURL(JSON.stringify(payload), { errorCorrectionLevel: "M" })
+  }
 }
