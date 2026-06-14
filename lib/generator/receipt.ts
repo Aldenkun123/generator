@@ -3,10 +3,25 @@ import { join } from "node:path"
 import { randomReceipt } from "./randomize"
 import { signedQrDataUrl } from "../signature/sign"
 
-// Register font dari folder fonts/ — wajib agar teks muncul di Vercel
-const fontDir = join(process.cwd(), "fonts")
-GlobalFonts.registerFromPath(join(fontDir, "Roboto-Regular.ttf"), "Roboto")
-GlobalFonts.registerFromPath(join(fontDir, "Roboto-Bold.ttf"), "Roboto-Bold")
+// Register Roboto fonts - coba multiple paths untuk compatibility (lokal + Vercel)
+const tryRegisterFont = (filename: string, family: string) => {
+  const paths = [
+    join(process.cwd(), "fonts", filename),
+    join(__dirname, "../../fonts", filename),
+    join("/var/task", "fonts", filename), // Vercel deployment path
+  ]
+  for (const p of paths) {
+    try {
+      GlobalFonts.registerFromPath(p, family)
+      break
+    } catch {
+      // Font sudah terdaftar atau path tidak ada, lanjut ke path berikutnya
+    }
+  }
+}
+
+tryRegisterFont("Roboto-Regular.ttf", "Roboto")
+tryRegisterFont("Roboto-Bold.ttf", "Roboto-Bold")
 
 const W = 640
 const PAD = 20
