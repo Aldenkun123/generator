@@ -5,6 +5,7 @@
   "engines": { "node": "20.x" },
   "scripts": {
     "keys": "tsx scripts/keys.ts",
+    "embed-fonts": "tsx scripts/embed-fonts.ts",
     "dev": "vercel dev"
   },
   "dependencies": {
