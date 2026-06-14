@@ -10,10 +10,11 @@ export type ReceiptPayload = {
   synthetic: true
 }
 
-function pem(envName: string): string {
+// Decode Base64 → PEM. Ini yang fix error ERR_OSSL_UNSUPPORTED.
+function loadPem(envName: string): string {
   const v = process.env[envName]
-  if (!v) throw new Error(`Missing env ${envName}`)
-  return v.replace(/\\n/g, "\n") // dukung nilai env satu baris
+  if (!v) throw new Error(`Missing env var: ${envName}`)
+  return Buffer.from(v, "base64").toString("utf-8")
 }
 
 export function canonical(obj: Record<string, unknown>) {
@@ -21,7 +22,7 @@ export function canonical(obj: Record<string, unknown>) {
 }
 
 export function signPayload(payload: ReceiptPayload) {
-  const key = createPrivateKey(pem("RECEIPT_PRIVATE_KEY"))
+  const key = createPrivateKey(loadPem("RECEIPT_PRIVATE_KEY"))
   const sig = edSign(null, Buffer.from(canonical(payload)), key).toString("base64url")
   return { payload, sig }
 }
