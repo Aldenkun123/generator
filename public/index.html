@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="id">
+  <head><meta charset="utf-8" /><title>Receipt Test Kit</title></head>
+  <body style="font-family: system-ui; max-width: 640px; margin: 40px auto;">
+    <h1>Receipt Test Kit (SYNTHETIC)</h1>
+    <p>Endpoint uji:</p>
+    <ul>
+      <li><a href="/api/generate?format=png">/api/generate?format=png</a></li>
+      <li><a href="/api/generate?format=jpeg">/api/generate?format=jpeg</a></li>
+      <li><a href="/api/generate?format=pdf">/api/generate?format=pdf</a></li>
+      <li><a href="/api/tamper?op=recompress">/api/tamper?op=recompress</a></li>
+    </ul>
+    <p>POST <code>/api/verify</code> dengan body JSON { payload, sig }.</p>
+  </body>
+</html>
